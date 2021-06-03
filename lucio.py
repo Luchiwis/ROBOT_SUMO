@@ -3,13 +3,11 @@
 NOTA: NO USAR TILDES NI EN LOS COMENTARIOS PORQUE SE CAGA TOD0
 
 TODO:
-    crear la funcion "interrumpir" que con un parametro se pueda elegir que funcion interrumpir;
     terminar el test de input manual;
 """
 
 
 from RobotRL import RobotRL
-import keyboard
 
 
 class Bondiola(RobotRL):
@@ -85,6 +83,11 @@ class Bondiola(RobotRL):
             # agregar funcion para detenerse al final de la cola
             self.cola.append((self.detener, ()))
 
+
+    """
+    funciones internas
+    """
+
     def ejecutarProcesos(self):
         """
         cuando se llama una funcion externamente, por default, se guarda esa informacion en la cola de funciones y luego
@@ -104,6 +107,10 @@ class Bondiola(RobotRL):
             print(
                 f"ejecutando el proceso {funcion.__name__}, quedan {len(self.cola)} procesos en cola")
 
+    def abortar(self):
+        """aborta todos los procesos en cola"""
+        self.cola = []
+
 
 
     def update(self):  # loop
@@ -112,28 +119,7 @@ class Bondiola(RobotRL):
 
         self.ejecutarProcesos()
 
-        
-        
 
-
-"""
-TODO:
-def actualizar_acciones_manuales():
-    accion = {
-    "w":"recto",
-    "a":"izquierda",
-    "s":"retroceder",
-    "d":"derecha"}
-
-    for k in accion.keys():
-        try:
-            if keyboard.is_pressed(k):
-                accion[k]()
-            else:
-                detener()
-        except:
-            pass
-"""
 
 bondiola = Bondiola()
 
