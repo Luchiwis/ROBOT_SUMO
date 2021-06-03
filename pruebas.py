@@ -1,5 +1,2 @@
-def hola():
-    pass
-
-
-print(hola.__name__)
+if 1 == True:
+    print("aa")
