@@ -1,9 +1,6 @@
 #RobotName: lucio
 """
 NOTA: NO USAR TILDES NI EN LOS COMENTARIOS PORQUE SE CAGA TOD0
-
-TODO:
-    terminar el test de input manual;
 """
 
 
@@ -65,17 +62,19 @@ class Bondiola(RobotRL):
         #FIXME: precision
         if executeFunc:
             # ejecutar la funcion
-
-            angulo %= 360  # normalizar angulo
+            
             self.vel = 0
             if angulo >= 0:
+                angulo = (angulo%360)
                 (self.setVI(100), self.setVD(-100))  # horario
             else:
+                angulo = -(angulo%360)
+                print("antiHorario")
                 (self.setVI(-100), self.setVD(100))  # antihorario
 
         else:
             # si el metodo fue llamado por fuera de la clase
-            ciclos = (angulo*10)//180
+            ciclos = (abs(angulo)*10)//180
             info = (self.rotar, (angulo,))  # funcion en formato de cola
             for _ in range(ciclos):
                 # agregar funcion a la cola por x cantidad de ciclos
@@ -134,7 +133,7 @@ while bondiola.step():
     # test
     if (flipflop == 0):
         flipflop = 1
-        bondiola.rotar(90)
+        bondiola.rotar(-90)
     if (flipflop == 1):
         flipflop = 2
         print(flipflop)
