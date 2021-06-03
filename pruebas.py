@@ -1,2 +1,5 @@
-#RobotName: Nada
+def hola():
+    pass
 
+
+print(hola.__name__)
