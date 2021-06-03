@@ -17,22 +17,35 @@ class Bondiola(RobotRL):
         super().__init__()
         self.vel = 100
         self.cicloActual = 0
+        self.ACELERACION = 1.5
         self.funcionActual = {}
+        self.procesos = []  #cola de procesos[{},{},{},{}...]
 
-        #test
-        self.flipflop = True
-    
+
     def detener(self):
         self.vel = 0
         self.setVI(self.vel)
         self.setVD(self.vel)
-
+    def avanzar(self, ciclos):
+        """
+        avanzar con una aceleracion aceptable
+        """
+        if not self.vel:
+            self.vel = 1
+        elif self.vel<100:
+            self.vel *= self.ACELERACION
+        elif self.vel>100:
+            self.vel = 100
+        
+        self.setVI(self.vel)
+        self.setVD(self.vel)
+        print(f"velocidad: {self.vel}")     
     def rotar(self, angulo):
         """
         10rep > +-180grad
         """
         angulo %= 360 #normalizar angulo
-
+        self.vel = 0
         if angulo>=0:
             f = lambda :(self.setVI(self.vel),self.setVD(-self.vel)) #horario
         else:
@@ -43,19 +56,26 @@ class Bondiola(RobotRL):
         
         self.repetir(f, ciclos)
 
+    def agregarProceso(self, funcion, abort=False):
+        pass
+
+
     def repetir(self, funcion=None, ciclos=None):
         """repite una funcion x cantidad de ciclos
             sin argumentos simplemente actualiza un ciclo
-            si se ordena una funcion mientras otra se ejecuta: se interrumpe la anterior
+            si se ordena una funcion mientras otra se ejecuta: no cuenta
         """
         if (funcion and ciclos):
-            #se ordeno una funcion nueva
-            self.funcionActual = {
-                "func":funcion,
-                "start":self.cicloActual,
-                "duration":ciclos
-                }
-
+            if (not self.funcionActual): #si no se esta interrumpiendo nada
+                #se ordeno una funcion nueva
+                self.funcionActual = {
+                    "func":funcion,
+                    "start":self.cicloActual,
+                    "duration":ciclos
+                    }
+            else:
+                #si se interrumpe el programa retorna
+                print(f"{funcion} no pudo ejecutarse porque ya hay una funcion {self.funcionActual}")
         elif (self.funcionActual):
             #no se ordeno ninguna funcion, se sigue con la anterior si hay
             
@@ -73,15 +93,15 @@ class Bondiola(RobotRL):
     def update(self):
         """abstraccion del loop llevado a un metodo"""
         
-        #test
-        if self.flipflop:
-            self.flipflop = False
-            self.rotar(180)
 
-        self.repetir()
+        
 
         self.cicloActual +=1
         print(f"ciclo: {self.cicloActual}")
+        self.repetir()
+        
+
+
         
 
 
@@ -109,7 +129,19 @@ bondiola = Bondiola()
 
 
 
+#test
+flipflop = 0
 
 while bondiola.step():
-    
     bondiola.update()
+    
+
+    #test
+    if (flipflop==0):
+        print(flipflop)
+        flipflop = 1
+        bondiola.rotar(90)
+    if (flipflop == 1):
+        print(flipflop)
+        bondiola.avanzar(30)
+    

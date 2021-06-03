@@ -1,3 +1,2 @@
-f = lambda :(print("hola"),print("mundo"))
+#RobotName: Nada
 
-f()
