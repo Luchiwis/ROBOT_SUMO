@@ -1,2 +1,1 @@
-if 1 == True:
-    print("aa")
+print(50*20==40*25)

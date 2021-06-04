@@ -1,4 +1,4 @@
-#RobotName: Paulo
+#RobotName: mediocre
 from RobotRL import RobotRL
 
 robot = RobotRL()

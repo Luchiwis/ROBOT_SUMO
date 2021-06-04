@@ -1,22 +1,18 @@
-#RobotName: lucio
+#RobotName: manual
 """
 NOTA: NO USAR TILDES NI EN LOS COMENTARIOS PORQUE SE CAGA TOD0
-
-TODO:
-    terminar el test de input manual;
 """
 
 
 from RobotRL import RobotRL
 import keyboard
 
-
 class Bondiola(RobotRL):
     def __init__(self):
         super().__init__()
         self.vel = 100
         self.cicloActual = 0
-        self.ACELERACION = 1.5  # multiplo por ciclo
+        self.ACELERACION =10
         self.cola = []  # cola de procesos[f,f2,f3,f4...]
 
     """funciones fisicas:
@@ -24,6 +20,13 @@ class Bondiola(RobotRL):
     cada vez que la funcion es llamada desde afuera, se espera que no se use el parametro executeFunc
     por lo tanto la funcion se agrega a la cola y es gestionada por ejecutarProcesos mas adelante
     """
+
+    def print_estadisticas(self):
+        # print("velocidad: ",self.getVI(),self.getVD())
+        print("colorPiso: ",self.getColorPiso())
+        print("distancia: ",self.getDI(),self.getDD())
+        print("bumpers: ",self.getBI(),self.getBD())
+
 
     def detener(self, executeFunc=False):
         if executeFunc:
@@ -46,13 +49,13 @@ class Bondiola(RobotRL):
             if not self.vel:
                 self.vel = 1
             elif self.vel < 100:
-                self.vel *= self.ACELERACION
+                self.vel += self.ACELERACION
             elif self.vel > 100:
                 self.vel = 100
 
             self.setVI(self.vel)
             self.setVD(self.vel)
-            print(f"velocidad: {self.vel}")
+            # print(f"velocidad: {self.vel}")
         else:
             # si el metodo fue llamado por fuera de la clase
             info = (self.avanzar, (ciclos,))
@@ -62,21 +65,50 @@ class Bondiola(RobotRL):
             # agregar funcion para detenerse a la cola
             self.cola.append((self.detener, ()))
 
-    def rotar(self, angulo, executeFunc=False):
-        #FIXME: precision
+    def retroceder(self, ciclos, executeFunc=False):
         if executeFunc:
             # ejecutar la funcion
+            """
+            avanzar con una aceleracion aceptable
+            """
+            # aceleracion
+            if not self.vel:
+                self.vel = 1
+            elif self.vel < 100:
+                self.vel += self.ACELERACION
+            elif self.vel > 100:
+                self.vel = 100
 
-            angulo %= 360  # normalizar angulo
+            self.setVI(-self.vel)
+            self.setVD(-self.vel)
+            # print(f"velocidad: {self.vel}")
+        else:
+            # si el metodo fue llamado por fuera de la clase
+            info = (self.retroceder, (ciclos,))
+            for _ in range(ciclos):
+                # agregar funcion a la cola por x cantidad de ciclos
+                self.cola.append(info)
+            # agregar funcion para detenerse a la cola
+            self.cola.append((self.detener, ()))
+
+    def rotar(self, angulo, executeFunc=False):
+        #FIXME: precision (sacrificar velocidad por precision)
+        VEL_ROTACION = 50
+        if executeFunc:
+            # ejecutar la funcion
+            
             self.vel = 0
             if angulo >= 0:
-                (self.setVI(100), self.setVD(-100))  # horario
+                # angulo = (angulo%360)
+                (self.setVI(VEL_ROTACION), self.setVD(-VEL_ROTACION))  # horario
             else:
-                (self.setVI(-100), self.setVD(100))  # antihorario
+                # angulo = -(angulo%360)
+                (self.setVI(-VEL_ROTACION), self.setVD(VEL_ROTACION))  # antihorario
 
         else:
             # si el metodo fue llamado por fuera de la clase
-            ciclos = (angulo*10)//180
+            CICLOS_180 = 40*27//VEL_ROTACION    #regla de 3 inversa
+            ciclos = (abs(angulo)*CICLOS_180)//180  #regla de 3 simple
             info = (self.rotar, (angulo,))  # funcion en formato de cola
             for _ in range(ciclos):
                 # agregar funcion a la cola por x cantidad de ciclos
@@ -105,8 +137,7 @@ class Bondiola(RobotRL):
             # ejecuta la ultima funcion con los argumentos desempaquetados de la tupla. True significa que la accion debe ejecutarse
             funcion(*argumentos, True)
             self.cola.pop(0)    #eliminar el proceso actual de la cola
-            print(
-                f"ejecutando el proceso {funcion.__name__}, quedan {len(self.cola)} procesos en cola")
+            # print(f"ejecutando el proceso {funcion.__name__}, quedan {len(self.cola)} procesos en cola")
 
     def abortar(self):
         """aborta todos los procesos en cola"""
@@ -116,48 +147,40 @@ class Bondiola(RobotRL):
 
     def update(self):  # loop
         self.cicloActual += 1
-        print(f"ciclo: {self.cicloActual}")
+        # print(f"ciclo: {self.cicloActual}")
 
         self.ejecutarProcesos()
 
         
         
+bondiola = Bondiola()
 
-
-"""
-TODO:
 def actualizar_acciones_manuales():
     accion = {
-    "w":"recto",
-    "a":"izquierda",
-    "s":"retroceder",
-    "d":"derecha"}
+    "w":lambda :bondiola.avanzar(1, True),
+    "a":lambda :bondiola.rotar(-1, True),
+    "s":lambda :bondiola.retroceder(1, True),
+    "d":lambda :bondiola.rotar(1, True)}
 
     for k in accion.keys():
         try:
             if keyboard.is_pressed(k):
                 accion[k]()
-            else:
-                detener()
+            elif (not(keyboard.is_pressed("a")) and not(keyboard.is_pressed("s")) and not(keyboard.is_pressed("d")) and not(keyboard.is_pressed("w"))):
+                bondiola.detener(True)
         except:
             pass
-"""
 
-bondiola = Bondiola()
+
+
+
+
 
 
 # test
 flipflop = 0
 
 while bondiola.step():
-
+    actualizar_acciones_manuales()
     bondiola.update()
-
-    # test
-    if (flipflop == 0):
-        flipflop = 1
-        bondiola.rotar(90)
-    if (flipflop == 1):
-        flipflop = 2
-        print(flipflop)
-        bondiola.avanzar(30)
+    bondiola.print_estadisticas()
