@@ -58,6 +58,32 @@ class Bondiola(RobotRL):
             # agregar funcion para detenerse a la cola
             self.cola.append((self.detener, ()))
 
+    def retroceder(self, ciclos, executeFunc=False):
+        if executeFunc:
+            # ejecutar la funcion
+            """
+            avanzar con una aceleracion aceptable
+            """
+            # aceleracion
+            if not self.vel:
+                self.vel = 1
+            elif self.vel < 100:
+                self.vel *= self.ACELERACION
+            elif self.vel > 100:
+                self.vel = 100
+
+            self.setVI(-self.vel)
+            self.setVD(-self.vel)
+            print(f"velocidad: {self.vel}")
+        else:
+            # si el metodo fue llamado por fuera de la clase
+            info = (self.retroceder, (ciclos,))
+            for _ in range(ciclos):
+                # agregar funcion a la cola por x cantidad de ciclos
+                self.cola.append(info)
+            # agregar funcion para detenerse a la cola
+            self.cola.append((self.detener, ()))
+
     def rotar(self, angulo, executeFunc=False):
         #FIXME: precision
         if executeFunc:
@@ -121,20 +147,32 @@ class Bondiola(RobotRL):
 
 
 bondiola = Bondiola()
-
-
+#FIXME: arreglar parte logica
+def buscar():
+        global di, dd
+        di = bondiola.getDI()
+        dd = bondiola.getDD()
+        print("Sensor",dd)
+        if ((di < 100) and (dd < 100)):
+            bondiola.avanzar(30)
+            print("adelante 1")
+            
+        elif ((di == 100) and (dd < 100)):
+            bondiola.rotar(30)
+            print("adelante")
+            
+        elif ((di < 100) and (dd == 100)):
+            bondiola.rotar(-30)
+            print("girar")
+            
+        elif ((di == 100) and (dd == 100)):
+            bondiola.rotar(20)
+            print("adelante",dd)
+             
 # test
 flipflop = 0
 
 while bondiola.step():
 
     bondiola.update()
-
-    # test
-    if (flipflop == 0):
-        flipflop = 1
-        bondiola.rotar(-90)
-    if (flipflop == 1):
-        flipflop = 2
-        print(flipflop)
-        bondiola.avanzar(30)
+    buscar()
